@@ -1,0 +1,40 @@
+{
+  "name": "purepipe",
+  "version": "0.1.0",
+  "description": "A simple stream pipeline util",
+  "keywords": [
+    "stream",
+    "pipeline"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./purepipe.d.ts",
+      "import": "./purepipe.js",
+      "require": "./dist/purepipe.cjs"
+    }
+  },
+  "main": "./purepipe.js",
+  "types": "./purepipe.d.ts",
+  "files": [
+    "dist",
+    "purepipe.d.ts",
+    "purepipe.js"
+  ],
+  "scripts": {
+    "prepublishOnly": "tsup purepipe.js",
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.14",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.12.7",
+    "chai": "^5.1.0",
+    "mocha": "^10.4.0",
+    "prettier": "^3.2.5",
+    "tsup": "^8.0.2",
+    "tsx": "^4.7.3",
+    "typescript": "^5.4.5"
+  }
+}
