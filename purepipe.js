@@ -1,4 +1,4 @@
-import { PassThrough, Readable, Transform } from 'stream'
+import { PassThrough, Readable, Transform, Writable } from 'stream'
 
 const createPipeline = (...streams) => {
   const [source, ...rest] = streams
@@ -9,7 +9,7 @@ const createPipeline = (...streams) => {
   }, source)
 }
 
-const wrap = (...streams) => {
+const wrap = (streams) => {
   const passthrough = new PassThrough({ objectMode: true })
 
   const last = createPipeline(passthrough, ...streams)
@@ -29,10 +29,16 @@ const wrap = (...streams) => {
   return transform
 }
 
+const isReusable = (streams) => {
+  const first = streams[0]
+  const last = streams[streams.length - 1]
+
+  return first instanceof Writable && last instanceof Readable
+}
+
 export function purepipe(...streams) {
   if (streams.length === 0) return new PassThrough({ objectMode: true })
   if (streams.length === 1) return streams[0]
 
-  const last = streams[streams.length - 1]
-  return last instanceof Readable ? wrap(...streams) : createPipeline(...streams)
+  return isReusable(streams) ? wrap(streams) : createPipeline(...streams)
 }
