@@ -1,6 +1,6 @@
-import { PassThrough, Readable, Transform, Writable } from 'stream'
+import { PassThrough, Transform, Writable } from 'stream'
 
-const createPipeline = (...streams) => {
+const createPipeline = (streams) => {
   const [source, ...rest] = streams
   const last = streams[streams.length - 1]
   return rest.reduce((acc, transform) => {
@@ -12,7 +12,7 @@ const createPipeline = (...streams) => {
 const wrap = (streams) => {
   const passthrough = new PassThrough({ objectMode: true })
 
-  const last = createPipeline(passthrough, ...streams)
+  const last = createPipeline([ passthrough, ...streams ])
 
   const transform = new Transform({
     objectMode: true,
@@ -20,6 +20,10 @@ const wrap = (streams) => {
       passthrough.push(chunk)
       cb()
     },
+    flush (cb) {
+      last.on('finish', () => cb())
+      passthrough.push(null)
+    }
   })
 
   last.on('data', (data) => transform.push(data))
@@ -29,16 +33,14 @@ const wrap = (streams) => {
   return transform
 }
 
-const isReusable = (streams) => {
+const isOnlyReadable = (streams) => {
   const first = streams[0]
-  const last = streams[streams.length - 1]
-
-  return first instanceof Writable && last instanceof Readable
+  return !(first instanceof Writable)
 }
 
 export function purepipe(...streams) {
   if (streams.length === 0) return new PassThrough({ objectMode: true })
   if (streams.length === 1) return streams[0]
 
-  return isReusable(streams) ? wrap(streams) : createPipeline(...streams)
+  return isOnlyReadable(streams) ? createPipeline(streams) : wrap(streams)
 }

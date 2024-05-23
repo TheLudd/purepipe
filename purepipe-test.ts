@@ -133,6 +133,19 @@ describe('with write stream as last argument', () => {
       assert.deepEqual(dest, [1])
     }
   })
+
+  it('can combine transforms with writable streams', async () => {
+    const source = createReadable()
+
+    const doubleTransform = createTransform((chunk) => chunk * 2)
+    const target = createWritable()
+
+    const combinedWritable = purepipe(doubleTransform, target)
+
+    await awaitWritable(purepipe(source, combinedWritable))
+
+    assert.deepEqual(dest, [2, 4, 6])
+  })
 })
 
 describe('when combined', () => {
